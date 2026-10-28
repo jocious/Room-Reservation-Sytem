@@ -1,0 +1,1174 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Reservation</title>
+
+    <style>
+        /* GENERAL PAGE DESIGN */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f6f8f8;
+            color: #24394a;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        header {
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background: white;
+            border-bottom: 1px solid #d7e0e5;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        header p {
+            margin: 4px 0 0;
+            color: #657785;
+            font-size: 12px;
+        }
+
+        main {
+            width: 94%;
+            max-width: 1200px;
+            margin: 25px auto 45px;
+        }
+
+        /* SHOW ONLY THE ACTIVE PAGE */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .intro {
+            margin-bottom: 18px;
+        }
+
+        .intro h2 {
+            margin: 0 0 6px;
+            font-size: 23px;
+        }
+
+        .intro p {
+            color: #637583;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ==================================
+           PAGE 1: BUILDING BLUEPRINT
+           ================================== */
+
+        .blueprint {
+            background: #fbfdfd;
+            border: 2px solid #506b7c;
+            padding: 15px;
+            box-shadow: 0 8px 25px #24394a10;
+        }
+
+        .floor {
+            display: grid;
+            grid-template-columns: 78px minmax(0, 1fr);
+            border-bottom: 2px solid #506b7c;
+            min-height: 105px;
+        }
+
+        .floor:last-child {
+            border-bottom: none;
+        }
+
+        .floor-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 2px solid #506b7c;
+            writing-mode: vertical-rl;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #345b73;
+            background: #eef5f7;
+        }
+
+        .floor-space {
+            display: flex;
+            align-items: stretch;
+            min-width: 0;
+            padding: 8px;
+        }
+
+        /* CLICKABLE ROOMS */
+        .room {
+            border: 1.5px solid #587688;
+            background: #f8fcfd;
+            flex: 1 1 0;
+            min-width: 0;
+            min-height: 78px;
+            padding: 8px 3px;
+            color: #23485f;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .room + .room {
+            border-left: 0;
+        }
+
+        .room:hover {
+            background: #e3f2fa;
+            border-color: #276f9b;
+        }
+
+        .door {
+            width: 15px;
+            height: 7px;
+            border-top: 2px solid #7894a4;
+        }
+
+        /* STAIR AREAS */
+        .stair-area {
+            flex: 0 0 42px;
+            border: 1px solid #587688;
+            margin: 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #627987;
+            font-size: 10px;
+            writing-mode: vertical-rl;
+            background: repeating-linear-gradient(
+                0deg,
+                #f8fcfd,
+                #f8fcfd 7px,
+                #d6e1e7 8px,
+                #d6e1e7 9px
+            );
+        }
+
+        .empty-floor {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9aabb4;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        .blueprint-hint {
+            text-align: center;
+            color: #6c7f8a;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+
+        /* ==================================
+           PAGE 2: WEEKLY SCHEDULE
+           ================================== */
+
+        .back {
+            border: 1px solid #b8c8d1;
+            background: white;
+            color: #24394a;
+            padding: 9px 13px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .schedule-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 290px;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #d3dfe5;
+            border-radius: 12px;
+            padding: 17px;
+            min-width: 0;
+        }
+
+        .card h3 {
+            margin: 0 0 6px;
+            font-size: 18px;
+        }
+
+        .muted {
+            color: #637583;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .room-title {
+            color: #275f82;
+            font-weight: bold;
+        }
+
+        /* WEEKLY TABLE */
+        .weekly-table-wrap {
+            overflow: auto;
+            max-height: 650px;
+            border: 1px solid #aebdc6;
+            border-radius: 7px;
+        }
+
+        .weekly-table {
+            width: 100%;
+            min-width: 790px;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        .weekly-table th,
+        .weekly-table td {
+            border: 1px solid #c5d0d7;
+            text-align: center;
+            padding: 3px;
+        }
+
+        .weekly-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #eaf1f5;
+            color: #263f50;
+            padding: 9px 5px;
+        }
+
+        /* Keep the TIME column visible while scrolling */
+        .weekly-table th:first-child,
+        .weekly-table td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            min-width: 105px;
+            text-align: left;
+            white-space: nowrap;
+            background: #f5f8fa;
+            padding: 5px 8px;
+            font-weight: bold;
+        }
+
+        .weekly-table thead th:first-child {
+            z-index: 3;
+        }
+
+        /* AVAILABLE TIME SLOT */
+        .weekly-cell {
+            width: 100%;
+            min-width: 76px;
+            border: 1px solid #b5d8c2;
+            border-radius: 3px;
+            background: #d9f2e2;
+            color: #17643a;
+            padding: 6px 2px;
+            cursor: pointer;
+            font-size: 10px;
+            line-height: 1.25;
+        }
+
+        .weekly-cell:hover {
+            outline: 2px solid #72b88b;
+        }
+
+        /* SELECTED TIME SLOT */
+        .weekly-cell.selected {
+            outline: 2px solid #275f82;
+            background: #d8ecfa;
+            color: #174e70;
+            border-color: #275f82;
+        }
+
+        /* ALREADY RESERVED */
+        .weekly-cell.reserved {
+            background: #fff0bf;
+            color: #755400;
+            border-color: #ead27b;
+            cursor: not-allowed;
+        }
+
+        /* UNAVAILABLE */
+        .weekly-cell.unavailable {
+            background: #f9dddd;
+            color: #922c2c;
+            border-color: #e7b6b6;
+            cursor: not-allowed;
+        }
+
+        /* COLOR LEGEND */
+        .legend {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 13px;
+            font-size: 11px;
+            color: #637583;
+        }
+
+        .legend span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            display: inline-block;
+        }
+
+        /* ==================================
+           RESERVATION FORM
+           ================================== */
+
+        .summary {
+            background: #f1f7fa;
+            border: 1px solid #d5e5ee;
+            padding: 11px;
+            border-radius: 7px;
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 12px 0;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 12px 0 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #bdcdd6;
+            border-radius: 7px;
+            font-size: 14px;
+        }
+
+        .primary {
+            width: 100%;
+            margin-top: 12px;
+            background: #243f54;
+            color: white;
+            border: 0;
+            border-radius: 7px;
+            padding: 12px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .primary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        /* CONFIRMATION MESSAGES */
+        .notice {
+            display: none;
+            padding: 11px;
+            margin-top: 12px;
+            border-radius: 7px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .notice.show {
+            display: block;
+        }
+
+        .notice.success {
+            background: #d9f2e2;
+            color: #17643a;
+        }
+
+        .notice.error {
+            background: #f9dddd;
+            color: #922c2c;
+        }
+
+        /* RESPONSIVE DESIGN FOR SMALLER SCREENS */
+        @media (max-width: 850px) {
+            .schedule-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 560px) {
+            header h1 {
+                font-size: 19px;
+            }
+
+            main {
+                width: 96%;
+                margin-top: 16px;
+            }
+
+            .blueprint {
+                padding: 6px;
+            }
+
+            .floor {
+                grid-template-columns: 35px minmax(0, 1fr);
+                min-height: 80px;
+            }
+
+            .floor-space {
+                padding: 5px 3px;
+            }
+
+            .room {
+                font-size: 10px;
+                min-height: 60px;
+                padding: 4px 1px;
+            }
+
+            .stair-area {
+                flex-basis: 18px;
+                margin: 0 3px;
+                font-size: 8px;
+            }
+
+            .floor-label {
+                font-size: 10px;
+                letter-spacing: 0;
+            }
+
+            .card {
+                padding: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div>
+            <h1>Room Reservation</h1>
+            <p>Student room booking portal</p>
+        </div>
+
+        <button
+            class="back"
+            id="backButton"
+            style="display: none;"
+            type="button"
+        >
+            ← Building blueprint
+        </button>
+    </header>
+
+    <main>
+
+        <!-- ==================================
+             PAGE 1: BUILDING BLUEPRINT ONLY
+             ================================== -->
+
+        <section id="landingPage" class="page active">
+
+            <div class="intro">
+                <h2>Building Blueprint</h2>
+                <p>
+                    Select a room on the blueprint to view its
+                    schedule and request a reservation.
+                </p>
+            </div>
+
+            <div class="blueprint">
+
+                <!-- FOURTH FLOOR: EMPTY -->
+                <div class="floor">
+                    <div class="floor-label">4TH FLOOR</div>
+
+                    <div class="floor-space">
+                        <div class="empty-floor">EMPTY FLOOR</div>
+                    </div>
+                </div>
+
+                <!-- THIRD FLOOR: ROOMS 301 TO 309 -->
+                <div class="floor">
+                    <div class="floor-label">3RD FLOOR</div>
+
+                    <div class="floor-space">
+
+                        <div class="stair-area">STAIRS</div>
+
+                        <button class="room" data-floor="3" data-room="301">
+                            <span>301</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="3" data-room="302">
+                            <span>302</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="3" data-room="303">
+                            <span>303</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="3" data-room="304">
+                            <span>304</span><i class="door"></i>
+                        </button>
+
+                        <div class="stair-area">STAIRS</div>
+
+                        <button class="room" data-floor="3" data-room="305">
+                            <span>305</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="3" data-room="306">
+                            <span>306</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="3" data-room="307">
+                            <span>307</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="3" data-room="308">
+                            <span>308</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="3" data-room="309">
+                            <span>309</span><i class="door"></i>
+                        </button>
+
+                        <div class="stair-area">STAIRS</div>
+
+                    </div>
+                </div>
+
+                <!-- SECOND FLOOR: LAB 1 TO LAB 5 -->
+                <div class="floor">
+                    <div class="floor-label">2ND FLOOR</div>
+
+                    <div class="floor-space">
+
+                        <div class="stair-area">STAIRS</div>
+
+                        <button class="room" data-floor="2" data-room="LAB 1">
+                            <span>LAB 1</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="2" data-room="LAB 2">
+                            <span>LAB 2</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="2" data-room="LAB 3">
+                            <span>LAB 3</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="2" data-room="LAB 4">
+                            <span>LAB 4</span><i class="door"></i>
+                        </button>
+
+                        <button class="room" data-floor="2" data-room="LAB 5">
+                            <span>LAB 5</span><i class="door"></i>
+                        </button>
+
+                        <div class="stair-area">STAIRS</div>
+
+                    </div>
+                </div>
+
+                <!-- FIRST FLOOR: EMPTY -->
+                <div class="floor">
+                    <div class="floor-label">1ST FLOOR</div>
+
+                    <div class="floor-space">
+                        <div class="empty-floor">EMPTY FLOOR</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="blueprint-hint">
+                BUILDING PLAN · Select a labeled room to continue
+            </div>
+
+        </section>
+
+        <!-- ==================================
+             PAGE 2: WEEKLY ROOM SCHEDULE
+             ================================== -->
+
+        <section id="schedulePage" class="page">
+
+            <div class="intro">
+                <h2>Room Schedule & Reservation</h2>
+                <p>
+                    Time is listed down the left, and the days
+                    of the week are across the top.
+                </p>
+            </div>
+
+            <div class="schedule-layout">
+
+                <!-- WEEKLY SCHEDULE TABLE -->
+                <section class="card">
+
+                    <h3>
+                        <span id="roomHeading" class="room-title">Room</span>
+                        · Weekly schedule
+                    </h3>
+
+                    <p class="muted">
+                        Sunday–Saturday · 7:00 AM–9:00 PM.
+                        Each time slot is 30 minutes.
+                    </p>
+
+                    <div class="weekly-table-wrap">
+
+                        <table class="weekly-table">
+
+                            <thead>
+                                <tr>
+                                    <th>TIME</th>
+                                    <th>Sunday</th>
+                                    <th>Monday</th>
+                                    <th>Tuesday</th>
+                                    <th>Wednesday</th>
+                                    <th>Thursday</th>
+                                    <th>Friday</th>
+                                    <th>Saturday</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="weeklyScheduleBody">
+                                <!-- JavaScript creates schedule rows here. -->
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <!-- COLOR LEGEND -->
+                    <div class="legend">
+                        <span>
+                            <i class="dot" style="background: #d9f2e2"></i>
+                            Available
+                        </span>
+
+                        <span>
+                            <i class="dot" style="background: #fff0bf"></i>
+                            Reserved
+                        </span>
+
+                        <span>
+                            <i class="dot" style="background: #f9dddd"></i>
+                            Unavailable
+                        </span>
+
+                        <span>
+                            <i class="dot" style="background: #d8ecfa"></i>
+                            Selected
+                        </span>
+                    </div>
+
+                </section>
+
+                <!-- STUDENT RESERVATION FORM -->
+                <aside class="card booking">
+
+                    <h3>Reserve this room</h3>
+
+                    <p class="muted">
+                        Click an available day and time, then enter
+                        your Student ID.
+                    </p>
+
+                    <div class="summary" id="selectionSummary">
+                        No time slot selected yet.
+                        Choose an available cell in the weekly schedule.
+                    </div>
+
+                    <form id="reservationForm">
+
+                        <label for="studentId">Student ID</label>
+
+                        <input
+                            id="studentId"
+                            name="studentId"
+                            type="text"
+                            placeholder="Enter your Student ID"
+                            maxlength="30"
+                            required
+                            autocomplete="off"
+                        >
+
+                        <button
+                            class="primary"
+                            id="reserveButton"
+                            type="submit"
+                            disabled
+                        >
+                            Reserve Room
+                        </button>
+
+                    </form>
+
+                    <div
+                        id="notice"
+                        class="notice"
+                        role="status"
+                        aria-live="polite"
+                    ></div>
+
+                    <p class="muted" style="font-size: 11px; margin-top: 14px;">
+                        Prototype only: reservations are kept while
+                        this page remains open. Student IDs are not
+                        verified against a school database.
+                    </p>
+
+                </aside>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // ==========================================
+        // 1. VARIABLES AND INITIAL SETTINGS
+        // ==========================================
+
+        // Names of the days displayed in the weekly schedule.
+        const days = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday"
+        ];
+
+        // These variables store the room and time selected by the student.
+        let selectedFloor = null;
+        let selectedRoom = null;
+        let selectedSlot = null;
+
+        // Map stores the reservations made during this page session.
+        const reservations = new Map();
+
+        // Example reservations to demonstrate unavailable times.
+        // These are sample entries, not actual school reservations.
+        reservations.set("3|301|1|540", {
+            status: "reserved"
+        });
+
+        reservations.set("2|LAB 2|3|780", {
+            status: "reserved"
+        });
+
+        reservations.set("3|305|5|1020", {
+            status: "unavailable"
+        });
+
+        // Connect JavaScript to the HTML elements.
+        const landingPage = document.getElementById("landingPage");
+        const schedulePage = document.getElementById("schedulePage");
+        const backButton = document.getElementById("backButton");
+
+        const reserveButton = document.getElementById("reserveButton");
+        const summary = document.getElementById("selectionSummary");
+        const notice = document.getElementById("notice");
+
+        // ==========================================
+        // 2. OPEN THE SCHEDULE WHEN A ROOM IS CLICKED
+        // ==========================================
+
+        // Find every room button on the building blueprint.
+        document.querySelectorAll(".room[data-room]").forEach(roomButton => {
+
+            roomButton.addEventListener("click", () => {
+
+                // Get the floor number and room name from the button.
+                selectedFloor = Number(roomButton.dataset.floor);
+                selectedRoom = roomButton.dataset.room;
+
+                // Clear the previous time selection.
+                selectedSlot = null;
+
+                // Hide the blueprint page.
+                landingPage.classList.remove("active");
+
+                // Display the schedule page.
+                schedulePage.classList.add("active");
+
+                // Show the button that returns to the blueprint.
+                backButton.style.display = "inline-block";
+
+                // Display the selected room's name.
+                const floorName =
+                    selectedFloor === 2 ? "2nd" : "3rd";
+
+                document.getElementById("roomHeading").textContent =
+                    `${selectedRoom} · ${floorName} Floor`;
+
+                // Clear old messages and display the schedule.
+                clearNotice();
+                renderSlots();
+                updateSummary();
+
+                // Move the page back to the top.
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            });
+
+        });
+
+        // ==========================================
+        // 3. RETURN TO THE BUILDING BLUEPRINT
+        // ==========================================
+
+        backButton.addEventListener("click", () => {
+
+            // Hide the schedule page.
+            schedulePage.classList.remove("active");
+
+            // Show the building blueprint again.
+            landingPage.classList.add("active");
+
+            // Hide the return button.
+            backButton.style.display = "none";
+
+            // Clear the selected time.
+            selectedSlot = null;
+
+            clearNotice();
+
+            window.scrollTo({
+                top: 0,
+                behavior: "smooth"
+            });
+
+        });
+
+        // ==========================================
+        // 4. FORMAT THE TIME
+        // ==========================================
+
+        // Converts minutes into a readable time such as 7:00 AM.
+        function formatTime(totalMinutes) {
+
+            const hour24 = Math.floor(totalMinutes / 60);
+            const minute = totalMinutes % 60;
+
+            // Determine whether the time is AM or PM.
+            const suffix = hour24 >= 12 ? "PM" : "AM";
+
+            // Convert the 24-hour hour into a 12-hour hour.
+            let hour12 = hour24 % 12;
+
+            if (hour12 === 0) {
+                hour12 = 12;
+            }
+
+            // Return the formatted time.
+            return `${hour12}:${String(minute).padStart(2, "0")} ${suffix}`;
+        }
+
+        // ==========================================
+        // 5. CREATE A UNIQUE KEY FOR EACH TIME SLOT
+        // ==========================================
+
+        // A reservation is identified by its floor, room, day, and start time.
+        function getSlotKey(dayIndex, startMinutes) {
+
+            return `${selectedFloor}|${selectedRoom}|${dayIndex}|${startMinutes}`;
+
+        }
+
+        // ==========================================
+        // 6. DISPLAY THE ENTIRE WEEKLY SCHEDULE
+        // ==========================================
+
+        function renderSlots() {
+
+            // Find the table body where schedule rows will be displayed.
+            const body = document.getElementById("weeklyScheduleBody");
+
+            // Clear the previous room's schedule.
+            body.innerHTML = "";
+
+            // Start at 7:00 AM and stop at 9:00 PM.
+            // Add 30 minutes for every new row.
+            for (
+                let start = 7 * 60;
+                start < 21 * 60;
+                start += 30
+            ) {
+
+                const end = start + 30;
+
+                // Create a new row for this time range.
+                const row = document.createElement("tr");
+
+                // Create the time cell on the left.
+                const timeCell = document.createElement("td");
+
+                timeCell.textContent =
+                    `${formatTime(start)} – ${formatTime(end)}`;
+
+                row.appendChild(timeCell);
+
+                // Create one cell for every day of the week.
+                for (
+                    let dayIndex = 0;
+                    dayIndex < 7;
+                    dayIndex++
+                ) {
+
+                    const cell = document.createElement("td");
+
+                    // Find any existing reservation for this time.
+                    const key = getSlotKey(dayIndex, start);
+                    const reservation = reservations.get(key);
+
+                    // Create a button inside the schedule cell.
+                    const button = document.createElement("button");
+
+                    button.type = "button";
+                    button.className = "weekly-cell";
+
+                    button.setAttribute(
+                        "aria-label",
+                        `${days[dayIndex]}, ${formatTime(start)} to ${formatTime(end)}`
+                    );
+
+                    // If the slot is reserved or unavailable, disable it.
+                    if (reservation) {
+
+                        button.classList.add(reservation.status);
+
+                        button.textContent =
+                            reservation.status === "reserved"
+                                ? "Reserved"
+                                : "Unavailable";
+
+                        button.disabled = true;
+
+                    } else {
+
+                        // Otherwise, the slot is available to select.
+                        button.textContent = "Available";
+
+                        button.addEventListener("click", () => {
+
+                            // Save the selected day and time.
+                            selectedSlot = {
+                                dayIndex: dayIndex,
+                                day: days[dayIndex],
+                                start: start,
+                                end: end
+                            };
+
+                            clearNotice();
+
+                            // Refresh the table to highlight the selection.
+                            renderSlots();
+
+                            // Update the reservation summary.
+                            updateSummary();
+
+                        });
+
+                    }
+
+                    // Highlight the currently selected time slot.
+                    if (
+                        selectedSlot &&
+                        selectedSlot.dayIndex === dayIndex &&
+                        selectedSlot.start === start
+                    ) {
+
+                        button.classList.add("selected");
+                        button.textContent = "Selected";
+
+                    }
+
+                    // Add the button to its table cell.
+                    cell.appendChild(button);
+
+                    // Add the cell to the current row.
+                    row.appendChild(cell);
+
+                }
+
+                // Add the completed row to the schedule.
+                body.appendChild(row);
+
+            }
+
+        }
+
+        // ==========================================
+        // 7. UPDATE THE RESERVATION SUMMARY
+        // ==========================================
+
+        function updateSummary() {
+
+            if (selectedSlot) {
+
+                // Show the room, day, and selected time.
+                summary.textContent =
+                    `${selectedRoom} · ${selectedSlot.day} · ` +
+                    `${formatTime(selectedSlot.start)}–` +
+                    `${formatTime(selectedSlot.end)}. ` +
+                    `Enter your Student ID to reserve this time.`;
+
+                // Enable the reservation button.
+                reserveButton.disabled = false;
+
+            } else {
+
+                // Tell the student to choose a time first.
+                summary.textContent =
+                    `Room: ${selectedRoom}. ` +
+                    `Choose an available day and time in the weekly grid to continue.`;
+
+                // Keep the reservation button disabled.
+                reserveButton.disabled = true;
+
+            }
+
+        }
+
+        // ==========================================
+        // 8. SUBMIT THE ROOM RESERVATION
+        // ==========================================
+
+        document.getElementById("reservationForm")
+            .addEventListener("submit", event => {
+
+                // Prevent the browser from reloading the page.
+                event.preventDefault();
+
+                // Get the Student ID and remove extra spaces.
+                const studentId =
+                    document.getElementById("studentId").value.trim();
+
+                // Make sure a time slot has been selected.
+                if (!selectedSlot) {
+
+                    showNotice(
+                        "Please select an available time slot first.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                // Make sure the Student ID is not empty.
+                if (!studentId) {
+
+                    showNotice(
+                        "Please enter your Student ID.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                // Check whether the time slot is already taken.
+                const key = getSlotKey(
+                    selectedSlot.dayIndex,
+                    selectedSlot.start
+                );
+
+                if (reservations.has(key)) {
+
+                    selectedSlot = null;
+
+                    renderSlots();
+                    updateSummary();
+
+                    showNotice(
+                        "That time slot is no longer available. Please choose another time.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                // Save the reservation in the temporary Map.
+                reservations.set(key, {
+                    status: "reserved",
+                    studentId: studentId
+                });
+
+                // Prepare the confirmation message.
+                const confirmed =
+                    `${selectedRoom} on ${selectedSlot.day}, ` +
+                    `${formatTime(selectedSlot.start)}–` +
+                    `${formatTime(selectedSlot.end)}.`;
+
+                // Clear the selection and Student ID field.
+                selectedSlot = null;
+
+                document.getElementById("studentId").value = "";
+
+                // Refresh the schedule so the reserved time is disabled.
+                renderSlots();
+                updateSummary();
+
+                // Display the reservation confirmation.
+                showNotice(
+                    `Reservation recorded for ${confirmed} Student ID: ${studentId}`,
+                    "success"
+                );
+
+            });
+
+        // ==========================================
+        // 9. DISPLAY MESSAGES
+        // ==========================================
+
+        function showNotice(message, type) {
+
+            notice.textContent = message;
+
+            notice.className = `notice show ${type}`;
+
+        }
+
+        function clearNotice() {
+
+            notice.textContent = "";
+
+            notice.className = "notice";
+
+        }
+
+    </script>
+
+</body>
+</html>
